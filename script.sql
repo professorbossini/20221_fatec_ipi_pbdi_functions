@@ -159,6 +159,51 @@ CREATE TABLE tb_conta(
 	CONSTRAINT fk_tipo_conta FOREIGN KEY (cod_tipo_conta) REFERENCES tb_tipo_conta (cod_tipo_conta)
 );
 SELECT * FROM tb_conta;
+-------------------------------------------------------------------------------------
+--criação de conta
+--nome: fn_abrir_conta
+--parâmetros: código cliente, saldo, código de tipo de conta
+--retorno: boolean, indicando se a conta foi aberta ou não
+DROP ROUTINE IF EXISTS fn_abrir_conta;
+CREATE OR REPLACE FUNCTION fn_abrir_conta (IN p_cod_cliente INT, IN p_saldo NUMERIC (10, 2), IN p_cod_tipo_conta INT)
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+AS $$
+
+BEGIN
+	-- INSERT INTO tb_conta (cod_cliente, saldo, cod_tipo_conta) VALUES (p_cod_cliente, p_saldo, p_cod_tipo_conta);
+	INSERT INTO tb_conta (cod_cliente, saldo, cod_tipo_conta) VALUES ($1, $2, $3);
+	RETURN TRUE;
+EXCEPTION WHEN OTHERS THEN
+	RETURN FALSE;
+END;
+$$
+
+SELECT * FROM tb_cliente;
+SELECT * FROM tb_tipo_conta;
+DO $$
+DECLARE
+	v_cod_cliente INT := 4;
+	v_saldo NUMERIC (10, 2) := 500;
+	v_cod_tipo_conta INT := 1;
+	v_resultado BOOLEAN;
+BEGIN 
+	SELECT fn_abrir_conta (v_cod_cliente, v_saldo, v_cod_tipo_conta) INTO v_resultado;
+	RAISE NOTICE '%', format(
+		'Conta com saldo R$%s%s foi aberta', 
+		v_saldo, 
+		CASE WHEN v_resultado THEN '' ELSE ' não' END
+	);
+	v_saldo := 1000;
+	SELECT fn_abrir_conta (v_cod_cliente, v_saldo, v_cod_tipo_conta) INTO v_resultado;
+	RAISE NOTICE '%', format(
+		'Conta com saldo R$%s%s foi aberta',
+		v_saldo,
+		CASE WHEN v_resultado THEN '' ELSE ' não' END
+	);
+END;
+$$
+SELECT * FROM tb_conta;
 
 	
 	
