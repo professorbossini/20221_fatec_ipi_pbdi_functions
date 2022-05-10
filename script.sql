@@ -204,6 +204,41 @@ BEGIN
 END;
 $$
 SELECT * FROM tb_conta;
+-------------------------------------------------------------------------------------
+-- depósito de valor
+-- nome: fn_depositar
+-- parâmetros: código de cliente, código de conta, valor a ser depositado
+-- retorno: saldo resultante (numeric(10, 2))
+DROP FUNCTION IF EXISTS fn_depositar;
+CREATE OR REPLACE FUNCTION fn_depositar (IN p_cod_cliente INT, IN p_cod_conta INT, IN p_valor NUMERIC (10, 2))
+RETURNS NUMERIC(10, 2)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+	v_saldo_resultante NUMERIC(10, 2);
+BEGIN
+	UPDATE tb_conta SET saldo = saldo + p_valor WHERE cod_cliente = p_cod_cliente AND cod_conta = p_cod_conta;
+	SELECT saldo FROM tb_conta WHERE cod_cliente = p_cod_cliente AND cod_conta = p_cod_conta INTO v_saldo_resultante;
+	RETURN v_saldo_resultante;
+END;
+$$
+
+DO $$
+DECLARE
+	v_cod_cliente INT := 4;
+	v_cod_conta INT := 3;
+	v_valor NUMERIC (10, 2) := 200;
+	v_saldo_resultante NUMERIC (10, 2);
+BEGIN
+	SELECT fn_depositar (v_cod_cliente, v_cod_conta, v_valor) INTO v_saldo_resultante;
+	RAISE NOTICE '%', format(
+		'Após depositar R$%s, o saldo resultante é de R$%s',
+		v_valor,
+		v_saldo_resultante
+	);
+END;
+$$
+SELECT * FROM tb_conta;
 
 	
 	
